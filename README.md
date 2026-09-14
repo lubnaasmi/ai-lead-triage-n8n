@@ -35,9 +35,9 @@ An end-to-end inbound lead qualification and routing engine built in **n8n** run
 
 ---
 
-## Client Delivery & Demo
+## Business Impact & Demo
 
-Built as a client solution to automate inbound lead triage and eliminate manual inquiry screening. 
+Designed as an autonomous sales operations engine to eliminate manual inquiry screening.
 
 * **Outcome:** Reduced qualification-to-outreach response latency from 24+ hours to under 60 seconds.
 * **Verification:** Qualified leads are logged to dedicated tracking sheets while instantly receiving automated calendar scheduling invites; disqualified entries are isolated for asynchronous review.
