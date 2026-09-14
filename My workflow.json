@@ -1,0 +1,486 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Contact us",
+        "formDescription": "Fill up and we'll get back soon",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "= Full Name ",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company/Role"
+            },
+            {
+              "fieldLabel": "Budget",
+              "fieldType": "number",
+              "placeholder": "Budget Range"
+            },
+            {
+              "fieldLabel": "Project Details",
+              "fieldType": "textarea",
+              "placeholder": "Product Interest & Timeline"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -800,
+        -144
+      ],
+      "id": "0355eae6-8a47-4b51-b70d-1922b8df99e5",
+      "name": "On form submission",
+      "webhookId": "d87f4bea-2e60-41a3-9730-688ad1596de3",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert sales analyst and AI quality evaluator. Analyze this inbound lead:\n\n- Name: {{ $json[\"Full Name\"] }}\n- Email: {{ $json[\"Email\"] }}\n- Company/Role: {{ $json[\"Company/Role\"] }}\n- Budget: {{ $json[\"Budget\"] }}\n- Details: {{ $json[\"Project Details\"] }}\n\nEvaluate this submission. Return ONLY a valid JSON object with no markdown formatting, no backticks, and no extra prose:\n{\n  \"lead_score\": \"Hot\",\n  \"score_confidence\": 92,\n  \"is_qualified\": true,\n  \"justification\": \"High budget and clear near-term implementation timeline.\",\n  \"recommended_action\": \"Notify sales rep immediately for call booking.\"\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -528,
+        -160
+      ],
+      "id": "9d914b18-13ef-466a-b18a-60526d5c7a0e",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "2gC4vqmdJroLFNO9",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1c050d1-3cb8-40b4-9462-a617e7da5cf8",
+              "name": "lead_score",
+              "value": "={{ JSON.parse($json.content.parts[0].text).lead_score }}",
+              "type": "string"
+            },
+            {
+              "id": "37371e2b-f64e-42a6-996b-fa5bebbdd5da",
+              "name": "is_qualified",
+              "value": "={{ JSON.parse($json.content.parts[0].text).is_qualified }}",
+              "type": "boolean"
+            },
+            {
+              "id": "adc685d8-cd0b-4607-ae01-c05f146b9a31",
+              "name": "score_confidence",
+              "value": "={{ JSON.parse($json.content.parts[0].text).score_confidence }}",
+              "type": "number"
+            },
+            {
+              "id": "e1d55834-8e12-441f-8b3f-e2420edbd11c",
+              "name": "justification",
+              "value": "={{ JSON.parse($json.content.parts[0].text).justification }}",
+              "type": "string"
+            },
+            {
+              "id": "62e42e72-af42-4ffe-a110-ce96dd0e184a",
+              "name": "Full name",
+              "value": "={{ $('On form submission').item.json[' Full Name '] }}",
+              "type": "string"
+            },
+            {
+              "id": "2fd241c0-d0f8-4d3a-995d-02f7d0e7a6b8",
+              "name": "email",
+              "value": "={{ $('On form submission').item.json['Email'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -160,
+        -160
+      ],
+      "id": "72bb33e7-03a1-4faf-bf76-93275a89ae9e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4c9c10eb-85fd-45bd-a5c6-ae243ace56b0",
+              "leftValue": "={{ $json.is_qualified }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        64,
+        -160
+      ],
+      "id": "cba34d10-ac34-445f-b930-caca01519b99",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1TCuRIGbq1x-UZkypwtNYwRoeuqJLmVXaESUNy6SvkOY",
+          "mode": "list",
+          "cachedResultName": "Cold leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TCuRIGbq1x-UZkypwtNYwRoeuqJLmVXaESUNy6SvkOY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1TCuRIGbq1x-UZkypwtNYwRoeuqJLmVXaESUNy6SvkOY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_score": "={{ $json.lead_score }}",
+            "is_qualified": "={{ $json.is_qualified }}",
+            "score_confidence": "={{ $json.score_confidence }}",
+            "justification": "={{ $json.justification }}",
+            "Full name": "={{ $json[\"Full name\"] }}",
+            "email": "={{ $json.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lead_score",
+              "displayName": "lead_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "is_qualified",
+              "displayName": "is_qualified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "score_confidence",
+              "displayName": "score_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "justification",
+              "displayName": "justification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Full name",
+              "displayName": "Full name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        320,
+        128
+      ],
+      "id": "c320d310-41f5-468f-b284-3c386731439b",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4qqjU0OiGpxcJTct",
+          "name": "Google Sheets account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1EP-OzruGPFxxSEc_jakq35SZwTdbrrT_k40oEIbznpU",
+          "mode": "list",
+          "cachedResultName": "Hot leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EP-OzruGPFxxSEc_jakq35SZwTdbrrT_k40oEIbznpU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EP-OzruGPFxxSEc_jakq35SZwTdbrrT_k40oEIbznpU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_score": "={{ $('Edit Fields').item.json.lead_score }}",
+            "is_qualified": "={{ $('Edit Fields').item.json.is_qualified }}",
+            "score_confidence": "={{ $('Edit Fields').item.json.score_confidence }}",
+            "justification": "={{ $('Edit Fields').item.json.justification }}",
+            "Full name": "={{ $('Edit Fields').item.json['Full name'] }}",
+            "email": "={{ $('Edit Fields').item.json.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lead_score",
+              "displayName": "lead_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "is_qualified",
+              "displayName": "is_qualified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score_confidence",
+              "displayName": "score_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "justification",
+              "displayName": "justification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full name",
+              "displayName": "Full name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        288,
+        -256
+      ],
+      "id": "88bf6853-151e-4692-8b8c-bfcb3e4cd0f5",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4qqjU0OiGpxcJTct",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json.email }}",
+        "subject": "Next Steps: Schedule your discovery call",
+        "emailType": "text",
+        "message": "=Hi {{ $('Edit Fields').item.json['Full name'] }},\n\nThanks for reaching out! Based on your project details, our team would love to connect.\n\nPlease choose a convenient time for our 20-minute intro call on my booking page:\n\nhttps://calendar.app.google/hdENmm5c3qhzvzsVA\nLooking forward to speaking!\n\nBest regards,\nAmi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        -256
+      ],
+      "id": "d9a9b71c-2e34-4fe7-9452-5b8accd2127c",
+      "name": "Send a message",
+      "webhookId": "e21c88af-0729-4aa3-919d-c53140a9c95d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "tLYtiYL3f6I3mMGy",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "383aee1d-9711-4f76-9f79-9580e9b376c3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8b3ffb2fdd05b37138c87cab7565f048345d75be3ebc45e617e77c38bdaedf3d"
+  },
+  "nodeGroups": [],
+  "id": "dy4voSLIbGbXj6d5",
+  "tags": []
+}
